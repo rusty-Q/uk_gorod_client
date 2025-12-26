@@ -3,7 +3,7 @@
 
 # Установка
 ```bash
-git clone [https://github.com/yourusername/uk-gorod-client](https://github.com/rusty-Q/uk_gorod_client.git)
+git clone https://github.com/rusty-Q/uk_gorod_client
 cd uk-gorod-client
 pip install -e .
 ```
