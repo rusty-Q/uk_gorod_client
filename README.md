@@ -23,19 +23,19 @@ def main():
     
     try:
         # 1. Вход на портал
-        print("🔐 Вход на портал УК Город...")
+        print("Вход на портал УК Город...")
         if not client.login(credentials):
-            print("❌ Ошибка входа. Проверьте учетные данные.")
+            print("Ошибка входа. Проверьте учетные данные.")
             return
         
-        print("✅ Успешный вход")
+        print("Успешный вход")
         
         # 2. Получение списка счетчиков
-        print("\n📊 Получение данных счетчиков...")
+        print("\nПолучение данных счетчиков...")
         meters = client.get_meters()
         
         if not meters:
-            print("❌ Счетчики не найдены")
+            print("Счетчики не найдены")
             return
         
         # Выводим информацию о счетчиках
@@ -53,24 +53,24 @@ def main():
                 readings_to_submit[meter.id] = "567.89"
         
         if readings_to_submit:
-            print(f"\n📤 Отправка {len(readings_to_submit)} показаний...")
+            print(f"\nОтправка {len(readings_to_submit)} показаний...")
             
             result = client.submit_readings(readings_to_submit)
             
             if result.success:
-                print(f"✅ {result.message}")
+                print(f"{result.message}")
                 if result.validated:
                     valid_count = sum(result.validated.values())
-                    print(f"🔍 Проверено: {valid_count}/{len(result.validated)}")
+                    print(f" Проверено: {valid_count}/{len(result.validated)}")
             else:
-                print(f"❌ {result.message}")
+                print(f"{result.message}")
         
         # 4. Выход (опционально)
         client.logout()
-        print("\n👋 Сессия завершена")
+        print("\nСессия завершена")
         
     except Exception as e:
-        print(f"❌ Ошибка: {str(e)}")
+        print(f"Ошибка: {str(e)}")
 
 if __name__ == "__main__":
     main()
