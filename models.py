@@ -16,7 +16,6 @@ class MeterReading:
     last_reading_date: str    # Дата последнего показания
     last_reading_value: str   # Значение последнего показания
     next_verification: str    # Дата следующей поверки
-    
     # Поля для ввода новых показаний
     current_value: Optional[str] = None      # Текущее значение для ввода
     input_field_name: str = "InputValCnt"    # Имя поля для ввода
