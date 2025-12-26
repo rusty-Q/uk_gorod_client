@@ -7,7 +7,7 @@ cd uk-gorod-client
 pip install -e .
 
 # использование
-``` pythom
+``` bash
 #!/usr/bin/env python
 import yaml
 import json
