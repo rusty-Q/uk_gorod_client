@@ -2,10 +2,11 @@
 Специализированная библиотека для работы с порталом УК "Город" (Казань), которая позволит легко интегрировать различные источники данных.
 
 # Установка
+```bash
 git clone https://github.com/yourusername/uk-gorod-client
 cd uk-gorod-client
 pip install -e .
-
+```
 # использование
 ``` python
 import yaml
