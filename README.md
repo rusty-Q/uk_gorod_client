@@ -9,68 +9,54 @@ pip install -e .
 ```
 # Использование
 ``` python
-from uk_gorod import UKGorodClient, Credentials, format_meter_readings
+import os
+from uk_gorod import UKGorodClient
 
 def main():
-    # Создаем клиент
-    client = UKGorodClient(base_url="https://nd.inno-e.ru")
+    config_path = os.path.join(os.path.dirname(__file__), 'secrets.yaml')
     
-    # Учетные данные
-    credentials = Credentials(
-        email="ваш_email@mail.ru",
-        password="ваш_пароль"
-    )
+    client = UKGorodClient(base_url="https://nd.inno-e.ru", config_path=config_path)
     
     try:
-        # 1. Вход на портал
-        print("Вход на портал УК Город...")
-        if not client.login(credentials):
-            print("Ошибка входа. Проверьте учетные данные.")
+        print("Logging in to UK Gorod...")
+        
+        try:
+            if not client.login_with_config(service_name="uk_gorod"):
+                print("Login failed. Check credentials in secrets.yaml")
+                return
+        except FileNotFoundError as e:
+            print(f"Config error: {e}")
+            print("\nCreate secrets.yaml with structure:")
+            print("services:")
+            print("  - name: uk_gorod")
+            print("    login: your_email@mail.ru")
+            print("    password: your_password")
             return
         
-        print("Успешный вход")
+        print("Login successful")
         
-        # 2. Получение списка счетчиков
-        print("\nПолучение данных счетчиков...")
+        print("\nGetting meter data...")
         meters = client.get_meters()
         
         if not meters:
-            print("Счетчики не найдены")
+            print("No meters found")
             return
         
-        # Выводим информацию о счетчиках
-        print(format_meter_readings(meters))
+        print(f"Found {len(meters)} meters")
         
-        # 3. Пример отправки показаний (опционально)
-        # Собираем данные для отправки
-        readings_to_submit = {}
+        for i, meter in enumerate(meters, 1):
+            print(f"\n{i}. {meter.service}")
+            print(f"   ID: {meter.id}")
+            print(f"   Serial: {meter.serial_number}")
+            print(f"   Last: {meter.last_reading_value} ({meter.last_reading_date})")
+            if meter.current_value:
+                print(f"   Current: {meter.current_value}")
         
-        for meter in meters:
-            if meter.service == "Электроснабжение":
-                # Например, новое показание для электроснабжения
-                readings_to_submit[meter.id] = "1234.56"
-            elif meter.service == "Холодная вода":
-                readings_to_submit[meter.id] = "567.89"
-        
-        if readings_to_submit:
-            print(f"\nОтправка {len(readings_to_submit)} показаний...")
-            
-            result = client.submit_readings(readings_to_submit)
-            
-            if result.success:
-                print(f"{result.message}")
-                if result.validated:
-                    valid_count = sum(result.validated.values())
-                    print(f" Проверено: {valid_count}/{len(result.validated)}")
-            else:
-                print(f"{result.message}")
-        
-        # 4. Выход (опционально)
         client.logout()
-        print("\nСессия завершена")
+        print("\nSession closed")
         
     except Exception as e:
-        print(f"Ошибка: {str(e)}")
+        print(f"Error: {str(e)}")
 
 if __name__ == "__main__":
     main()
