@@ -9,108 +9,68 @@ pip install -e .
 ```
 # использование
 ``` python
-import yaml
-import json
-from uk_gorod_client import UKGorodClient, LoginCredentials, SauresIntegration
-from uk_gorod_client.utils.serial_normalizer import match_meters_by_serial
+from uk_gorod import UKGorodClient, Credentials, format_meter_readings
 
 def main():
-    # Загрузка конфигурации
-    with open('secrets.yaml', 'r') as f:
-        config = yaml.safe_load(f)
+    # Создаем клиент
+    client = UKGorodClient(base_url="https://nd.inno-e.ru")
     
-    uk_credentials = LoginCredentials(
-        email=config['uk_gorod']['login'],
-        password=config['uk_gorod']['password']
+    # Учетные данные
+    credentials = Credentials(
+        email="ваш_email@mail.ru",
+        password="ваш_пароль"
     )
     
-    # Создаем клиент УК Город
-    uk_client = UKGorodClient(base_url="https://nd.inno-e.ru")
-    
     try:
-        # 1. Аутентификация
-        if not uk_client.login(uk_credentials):
-            print("Ошибка аутентификации в УК Город")
+        # 1. Вход на портал
+        print("🔐 Вход на портал УК Город...")
+        if not client.login(credentials):
+            print("❌ Ошибка входа. Проверьте учетные данные.")
             return
         
-        print("Успешная аутентификация в УК Город")
+        print("✅ Успешный вход")
         
-        # 2. Получение данных счетчиков
-        print("\nПолучение данных счетчиков...")
-        uk_meters = uk_client.get_meter_readings()
-        print(f"Получено счетчиков: {len(uk_meters)}")
+        # 2. Получение списка счетчиков
+        print("\n📊 Получение данных счетчиков...")
+        meters = client.get_meters()
         
-        # 3. Интеграция с Saures (опционально)
-        saures_integration = SauresIntegration()
+        if not meters:
+            print("❌ Счетчики не найдены")
+            return
         
-        if saures_integration.authenticate(
-            config['saures']['login'],
-            config['saures']['password']
-        ):
-            print("\nПолучение данных из Saures...")
-            # Предполагаем, что есть только один объект
-            saures_meters = saures_integration.get_object_meters(object_id=1)
-            
-            if saures_meters:
-                print(f"Получено счетчиков из Saures: {len(saures_meters)}")
-                
-                # Обогащаем данные УК Город
-                enriched_meters = saures_integration.enrich_uk_meters(uk_meters, saures_meters)
-                
-                # Считаем сколько счетчиков было обновлено
-                updated = sum(1 for m in enriched_meters if m.current_reading.source == 'saures')
-                print(f"Обновлено показаний из Saures: {updated}/{len(enriched_meters)}")
-                
-                uk_meters = enriched_meters
+        # Выводим информацию о счетчиках
+        print(format_meter_readings(meters))
         
-        # 4. Подготовка данных для отправки
-        # Здесь можно добавить логику для сбора актуальных данных из других источников
+        # 3. Пример отправки показаний (опционально)
+        # Собираем данные для отправки
         readings_to_submit = {}
         
-        for meter in uk_meters:
-            if meter.current_reading.value and meter.current_reading.value != '0':
-                readings_to_submit[meter.meter_reading_id] = meter.current_reading.value
+        for meter in meters:
+            if meter.service == "Электроснабжение":
+                # Например, новое показание для электроснабжения
+                readings_to_submit[meter.id] = "1234.56"
+            elif meter.service == "Холодная вода":
+                readings_to_submit[meter.id] = "567.89"
         
-        # 5. Отправка показаний (опционально)
         if readings_to_submit:
-            print(f"\nОтправка {len(readings_to_submit)} показаний...")
+            print(f"\n📤 Отправка {len(readings_to_submit)} показаний...")
             
-            try:
-                if uk_client.submit_meter_readings(readings_to_submit):
-                    print("Показания успешно отправлены")
-                    
-                    # 6. Валидация отправленных данных
-                    print("\nВалидация отправленных данных...")
-                    validation_results = uk_client.validate_submitted_readings(readings_to_submit)
-                    
-                    valid_count = sum(validation_results.values())
-                    print(f"Корректно отправлено: {valid_count}/{len(validation_results)}")
-                    
-                    for meter_id, is_valid in validation_results.items():
-                        if not is_valid:
-                            print(f"Ошибка валидации для счетчика {meter_id}")
-                else:
-                    print("Ошибка отправки показаний")
-            except Exception as e:
-                print(f"Ошибка при отправке: {str(e)}")
+            result = client.submit_readings(readings_to_submit)
+            
+            if result.success:
+                print(f"✅ {result.message}")
+                if result.validated:
+                    valid_count = sum(result.validated.values())
+                    print(f"🔍 Проверено: {valid_count}/{len(result.validated)}")
+            else:
+                print(f"❌ {result.message}")
         
-        # 7. Экспорт данных в JSON
-        print("\nЭкспорт данных...")
-        json_data = uk_client.export_readings_to_json(uk_meters, 'meter_readings.json')
-        print("Данные экспортированы в meter_readings.json")
-        
-        # 8. Вывод сводки
-        print(f"\nСводка:")
-        print(f"   Всего счетчиков: {len(uk_meters)}")
-        print(f"   С актуальными данными: {len(readings_to_submit)}")
+        # 4. Выход (опционально)
+        client.logout()
+        print("\n👋 Сессия завершена")
         
     except Exception as e:
-        print(f"Ошибка: {str(e)}")
-    
-    finally:
-        # Завершаем сессию
-        uk_client.logout()
-        print("\nСессия завершена")
+        print(f"❌ Ошибка: {str(e)}")
 
 if __name__ == "__main__":
     main()
