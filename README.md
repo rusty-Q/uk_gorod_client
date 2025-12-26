@@ -7,7 +7,7 @@ git clone https://github.com/rusty-Q/uk_gorod_client
 cd uk-gorod-client
 pip install -e .
 ```
-# использование
+# Использование
 ``` python
 from uk_gorod import UKGorodClient, Credentials, format_meter_readings
 
