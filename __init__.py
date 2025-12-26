@@ -1,7 +1,12 @@
 from .client import UKGorodClient
 from .models import Credentials, MeterReading, SubmissionResult
+from .config import ConfigLoader, ServiceConfig
 from .parser import parse_meters_page, extract_csrf_token
-from .utils import normalize_serial_number, compare_serial_numbers, format_meter_readings
+from .utils import (
+    normalize_serial_number, 
+    compare_serial_numbers, 
+    format_meter_readings
+)
 
 __version__ = "1.0.0"
 __all__ = [
@@ -9,6 +14,8 @@ __all__ = [
     'Credentials',
     'MeterReading',
     'SubmissionResult',
+    'ConfigLoader',
+    'ServiceConfig',
     'parse_meters_page',
     'extract_csrf_token',
     'normalize_serial_number',
