@@ -7,8 +7,7 @@ cd uk-gorod-client
 pip install -e .
 
 # использование
-``` bash
-#!/usr/bin/env python
+``` python
 import yaml
 import json
 from uk_gorod_client import UKGorodClient, LoginCredentials, SauresIntegration
