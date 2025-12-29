@@ -9,7 +9,7 @@ setup(
         "beautifulsoup4>=4.9.0",
     ],
     author="rusty-Q",
-    author_email="rustam2701@yandex.ru",
+    author_email="rustik2701@yandex.ru",
     description="Библиотека для работы с порталом УК Город",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
